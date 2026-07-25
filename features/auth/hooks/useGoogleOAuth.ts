@@ -5,12 +5,12 @@ import { useGoogleLogin, type CodeResponse } from "@react-oauth/google";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { useAuth } from "@/app/context/AuthContext";
-import { authApi } from "../service/authApi";
+import { authApi, userApi } from "@/services/api";
 
-const businessName = process.env.NEXT_PUBLIC_BUSINESS_NAME ?? "IdeaHub";
+const businessName = process.env.NEXT_PUBLIC_BUSINESS_NAME ?? "GeminiLM";
 
 export function useGoogleAuth() {
-  const { setIsAuthenticated, setUser } = useAuth();
+  const { setIsAuthenticated, setUser, createUser } = useAuth();
   const router = useRouter();
   const [isAuthenticating, setIsAuthenticating] = useState(false);
 
@@ -22,8 +22,10 @@ export function useGoogleAuth() {
         throw new Error("Missing Google authorization code");
       }
 
+      // 1. Exchange code with auth service — sets the HTTP-only token cookie
       const data = await authApi.googleCallback(authResult.code, businessName);
 
+      // 2. Persist profile in React state + localStorage for UI
       setUser({
         profilePic: data.userInfo.profileImage,
         username: data.userInfo.username,
@@ -32,13 +34,14 @@ export function useGoogleAuth() {
       });
       setIsAuthenticated(true);
 
-    //   const doesUserExist = await userApi.getByEmail(data.userInfo.email);
-    //   if (!doesUserExist.exist) {
-    //     await createUser(data.userInfo.email, data.userInfo.name);
-    //   }
+      // 3. Ensure a matching row exists in our own users table
+      const doesUserExist = await userApi.getByEmail(data.userInfo.email);
+      if (!doesUserExist.exist) {
+        await createUser(data.userInfo.email, data.userInfo.name);
+      }
 
       toast.success("Logged in successfully");
-      router.push("/ideas");
+      router.push("/dashboard");
     } catch (error) {
       console.error(error);
       toast.error("Something went wrong!");
@@ -47,11 +50,13 @@ export function useGoogleAuth() {
   };
 
   const handleGoogleError = (error: { error?: string }) => {
-    if (error.error === "popup_closed_by_user" || error.error === "access_denied") {
+    if (
+      error.error === "popup_closed_by_user" ||
+      error.error === "access_denied"
+    ) {
       toast.error("Account selection canceled.");
       return;
     }
-
     console.error("Google Login Error:", error);
     toast.error("Google login failed.");
   };
