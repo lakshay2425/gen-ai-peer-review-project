@@ -34,6 +34,9 @@ function readStoredAuthState(): {
   user: StoredUserInfo | null;
   isAuthenticated: boolean;
 } {
+  if (typeof window === "undefined") {
+    return { user: null, isAuthenticated: false };
+  }
   try {
     const storedUser = localStorage.getItem(USER_INFO_KEY);
     if (storedUser) {
