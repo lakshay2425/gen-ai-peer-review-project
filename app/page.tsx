@@ -135,27 +135,6 @@ const features = [
     description:
       "Get key takeaways, structured study guides, FAQs, and briefing docs generated from your content in seconds.",
   },
-  {
-    icon: (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth={1.5}
-        className="w-5 h-5"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M19.114 5.636a9 9 0 0 1 0 12.728M16.463 8.288a5.25 5.25 0 0 1 0 7.424M6.75 8.25l4.72-4.72a.75.75 0 0 1 1.28.53v15.88a.75.75 0 0 1-1.28.53L6.75 15.75H4.5a.75.75 0 0 1-.75-.75v-6a.75.75 0 0 1 .75-.75H6.75Z"
-        />
-      </svg>
-    ),
-    title: "Audio overviews",
-    description:
-      "Transform any notebook into an engaging podcast-style discussion — listen while commuting, exercising, or relaxing.",
-  },
 ];
 
 export default function HomePage() {
@@ -270,9 +249,12 @@ export default function HomePage() {
               From quick summaries to deep conversations — GeminiLM adapts to how you work.
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
             {features.map((feature) => (
-              <div key={feature.title} className="flex flex-col gap-4">
+              <div
+                key={feature.title}
+                className="rounded-2xl border border-gray-100 bg-gray-50 p-8 flex flex-col gap-4"
+              >
                 <div className="inline-flex w-fit rounded-xl bg-indigo-50 text-indigo-600 p-3">
                   {feature.icon}
                 </div>
