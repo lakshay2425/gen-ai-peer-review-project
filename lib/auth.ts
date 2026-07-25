@@ -1,4 +1,5 @@
 import { jwtVerify, importSPKI, errors } from "jose";
+import { cookies } from "next/headers";
 import type { NextRequest } from "next/server";
 
 export const AUTH_COOKIE_NAME = "token";
@@ -105,4 +106,16 @@ export function getAuthenticatedRequest(
   request: NextRequest,
 ): AuthenticatedRequest {
   return Object.assign(request, { user: getAuthUser(request) });
+}
+
+export async function getCurrentUserId(): Promise<string> {
+  const cookieStore = await cookies();
+  const token = cookieStore.get(AUTH_COOKIE_NAME)?.value;
+
+  if (!token) {
+    throw new AuthError("Not authenticated", 401);
+  }
+
+  const user = await verifyAuthToken(token);
+  return user.userId;
 }

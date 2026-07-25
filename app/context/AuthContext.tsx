@@ -10,6 +10,7 @@ import {
 } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+import { LoadingOverlay } from "@/app/components/LoadingOverlay";
 import { userApi, authApi } from "@/services/api";
 
 export type StoredUserInfo = {
@@ -21,8 +22,10 @@ export type StoredUserInfo = {
 
 type AuthContextValue = {
   isAuthenticated: boolean;
+  isAuthenticating: boolean;
   user: StoredUserInfo | null;
   setIsAuthenticated: (value: boolean) => void;
+  setIsAuthenticating: (value: boolean) => void;
   setUser: (value: StoredUserInfo | null) => void;
   createUser: (email: string, fullName: string, role?: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -61,6 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(
     () => readStoredAuthState().isAuthenticated,
   );
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
 
   const setUser = useCallback((value: StoredUserInfo | null) => {
     setUserState(value);
@@ -99,16 +103,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const value = useMemo(
     () => ({
       isAuthenticated,
+      isAuthenticating,
       user,
       setIsAuthenticated,
+      setIsAuthenticating,
       setUser,
       createUser,
       logout,
     }),
-    [createUser, isAuthenticated, logout, setUser, user],
+    [createUser, isAuthenticated, isAuthenticating, logout, setUser, user],
   );
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {isAuthenticating && (
+        <LoadingOverlay message="Setting up your account..." />
+      )}
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth() {
