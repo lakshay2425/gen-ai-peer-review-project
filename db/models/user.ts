@@ -7,6 +7,8 @@ import { pgTable, varchar, timestamp } from "drizzle-orm/pg-core";
 export const users = pgTable("users", {
   id: varchar("id").primaryKey(),
   role: varchar("role").notNull().default("user"),
+  /** Subscription / pricing plan for the user, e.g. "free" | "pro" | "enterprise" */
+  plan: varchar("plan").notNull().default("free"),
   fullName: varchar("full_name").notNull(),
   email: varchar("email").notNull().unique(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
