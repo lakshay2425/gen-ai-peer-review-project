@@ -33,7 +33,7 @@ answers with proper citations. Built as part of GenAI cohort assignment under a
 ### Chapter 4 — Query Phase
 - Grounded responses via OpenAI
 - Every answer includes citations — no answer without a source
-- Soft delete filter applied at query time (see Engineering Decisions)
+- Soft delete filter applied at query time
 
 ### Chapter 5 — Citation Viewer
 - Click citation → three panel layout
@@ -126,3 +126,60 @@ Text    → { "content": "..." }
 ```
 
 ---
+
+---
+
+## Engineering Decisions
+
+### 1. Soft Delete Filter on Vector Search
+Instead of immediately deleting chunks from Qdrant when a source or notebook is marked 
+for deletion, we fetch only active source IDs from Postgres and pass them as a Qdrant 
+filter at query time:
+
+```ts
+filter: {
+  must: [
+    { key: 'sourceId', match: { any: activeSourceIds } }
+  ]
+}
+```
+
+This ensures deleted sources never appear in results without requiring synchronous 
+cleanup of the vector database. Proper async deletion via pg-boss is planned for 
+the next version.
+
+### 2. pg-boss for Background Jobs
+Used pg-boss for the ingestion pipeline queue instead of introducing Redis or a 
+managed queue service. Reuses the existing Postgres instance — keeps the stack lean.
+
+### 3. OpenAI SDK over Vercel AI SDK
+For a custom RAG pipeline with manual prompt construction and citation extraction, 
+direct API calls are preferable over abstraction. Full transparency and control 
+over every step of the LLM interaction.
+
+### 4. PDF Size Limit — 10MB
+PDFs are stored on a self-hosted VPS MinIO instance. 10MB limit enforced on both 
+frontend and backend to manage storage constraints responsibly.
+
+### 5. No Streaming (V1)
+Streaming skipped in V1 due to time constraints. Can be added later by swapping 
+generateText for streamText with minimal restructuring.
+
+### 6. Notebook Isolation via Qdrant Filter
+Each notebook maintains its own isolated knowledge base. Isolation is enforced at 
+query time by filtering Qdrant results by notebookId — no separate collection per notebook.
+
+---
+
+## Reusable Skill Files Used
+- `integrate-auth-service-in-nextjs-project.md` — Auth service integration pattern
+- `document-upload-skill.md` — Pre-signed URL file upload workflow
+
+## Future Skill Files (Post Project)
+- RAG ingestion pipeline
+- Qdrant setup + hybrid search + reranking
+- Citation-aware LLM prompting
+- YouTube transcript extraction + chunking
+- PDF processing + MinIO storage
+- Web scraping + chunking pipeline
+- Vector DB metadata filtering strategy
