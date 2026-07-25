@@ -8,6 +8,13 @@
       "when": 1785002329043,
       "tag": "0000_salty_kitty_pryde",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1785007369438,
+      "tag": "0001_easy_nightmare",
+      "breakpoints": true
     }
   ]
 }
