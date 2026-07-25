@@ -4,8 +4,8 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import Navbar from "@/app/components/Navbar";
 import NotebookWorkspaceHeader from "@/features/notebooks/components/NotebookWorkspaceHeader";
+import NotebookWorkspaceLayout from "@/features/notebooks/components/NotebookWorkspaceLayout";
 import { useNotebook } from "@/features/notebooks/hooks";
-import SourcesPanel from "@/features/sources/components/SourcesPanel";
 
 export default function NotebookPage() {
   const params = useParams<{ notebookId: string }>();
@@ -51,19 +51,12 @@ export default function NotebookPage() {
     <div className="flex flex-col min-h-screen bg-white font-[family-name:var(--font-geist-sans)]">
       <Navbar />
       <main className="flex-1 pt-24 pb-16 px-6">
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-7xl mx-auto">
           <NotebookWorkspaceHeader
             notebookId={notebook.id}
             title={notebook.title}
           />
-          <div className="flex flex-col lg:flex-row gap-6">
-            <SourcesPanel />
-            <section className="flex-1 min-h-[420px] rounded-2xl border border-gray-100 bg-gray-50 p-8 flex items-center justify-center">
-              <p className="text-sm text-gray-500 text-center max-w-md">
-                Chat and summaries will appear here once you add a source.
-              </p>
-            </section>
-          </div>
+          <NotebookWorkspaceLayout />
         </div>
       </main>
     </div>
