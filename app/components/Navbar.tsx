@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useAuth } from "@/app/context/AuthContext";
 import GetStartedButton from "@/features/auth/components/GetStartedButton";
 
@@ -9,11 +10,12 @@ export default function Navbar() {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
       <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className="text-xl font-semibold tracking-tight text-gray-900">
-            Gemini<span className="text-indigo-600">LM</span>
-          </span>
-        </div>
+        <Link
+          href="/"
+          className="text-xl font-semibold tracking-tight text-gray-900 hover:opacity-80 transition-opacity"
+        >
+          Gemini<span className="text-indigo-600">LM</span>
+        </Link>
 
         <div className="flex items-center gap-4">
           {isAuthenticated && user ? (

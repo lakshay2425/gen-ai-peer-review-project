@@ -1,7 +1,7 @@
 "use client";
 
 import { useGoogleAuth } from "../hooks/useGoogleOAuth";
-import { AuthLoadingOverlay } from "./AuthLoadingOverlay";
+import { useAuth } from "@/app/context/AuthContext";
 
 type GetStartedButtonProps = {
   children: React.ReactNode;
@@ -12,19 +12,17 @@ export default function GetStartedButton({
   children,
   className,
 }: GetStartedButtonProps) {
-  const { handleGoogleLogin, isAuthenticating } = useGoogleAuth();
+  const { handleGoogleLogin } = useGoogleAuth();
+  const { isAuthenticating } = useAuth();
 
   return (
-    <>
-      {isAuthenticating && <AuthLoadingOverlay message="Setting up your account..." />}
-      <button
-        type="button"
-        onClick={() => handleGoogleLogin()}
-        disabled={isAuthenticating}
-        className={className}
-      >
-        {children}
-      </button>
-    </>
+    <button
+      type="button"
+      onClick={() => handleGoogleLogin()}
+      disabled={isAuthenticating}
+      className={className}
+    >
+      {children}
+    </button>
   );
 }
