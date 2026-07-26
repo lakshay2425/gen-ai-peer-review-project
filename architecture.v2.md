@@ -698,6 +698,22 @@ Defer to post-assessment (this document):
 
 ---
 
+## Deferred During MVP Implementation
+
+Captured while shipping the assessment MVP:
+
+1. Notebook status remains `active | deleted` in DB (not `deleting`) to avoid a breaking
+   migration during the assessment window. Source deletion already uses `deleting`.
+2. PDF init creates the source row before signing; if policy signing fails after insert,
+   an abandoned pending PDF row can remain until cleanup/TTL. Compensating delete or
+   outbox-style finalize belongs in V2.
+3. PDF indexing currently buffers the object into memory via MinIO `getObject` chunks.
+   Temp-file streaming and worker-thread isolation remain V2.
+4. Version fencing across Qdrant batches and dead-letter terminal reconciliation remain V2.
+5. MinIO bucket/CORS/webhook auto-setup is still manual for local Docker.
+
+---
+
 ## Migration Path
 
 1. Ship MVP against `architecture.md`

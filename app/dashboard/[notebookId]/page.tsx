@@ -56,7 +56,7 @@ export default function NotebookPage() {
             notebookId={notebook.id}
             title={notebook.title}
           />
-          <NotebookWorkspaceLayout />
+          <NotebookWorkspaceLayout notebookId={notebook.id} />
         </div>
       </main>
     </div>

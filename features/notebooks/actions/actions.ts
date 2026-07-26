@@ -13,9 +13,55 @@ const titleSchema = z
   .min(1, "Title is required")
   .max(200, "Title must be 200 characters or less");
 
-export async function createNotebook(title = "Untitled notebook") {
+const idempotencyKeySchema = z.string().uuid();
+
+export async function createNotebook(input?: {
+  title?: string;
+  idempotencyKey?: string;
+}) {
   const userId = await getCurrentUserId();
-  const parsedTitle = titleSchema.parse(title);
+  const parsedTitle = titleSchema.parse(input?.title ?? "Untitled notebook");
+  const idempotencyKey = input?.idempotencyKey
+    ? idempotencyKeySchema.parse(input.idempotencyKey)
+    : undefined;
+
+  if (idempotencyKey) {
+    const [inserted] = await db
+      .insert(notebooks)
+      .values({
+        title: parsedTitle,
+        userId,
+        idempotencyKey,
+      })
+      .onConflictDoNothing({
+        target: [notebooks.userId, notebooks.idempotencyKey],
+      })
+      .returning();
+
+    if (inserted) {
+      revalidatePath("/dashboard");
+      return inserted;
+    }
+
+    const [existing] = await db
+      .select()
+      .from(notebooks)
+      .where(
+        and(
+          eq(notebooks.userId, userId),
+          eq(notebooks.idempotencyKey, idempotencyKey),
+          eq(notebooks.status, "active"),
+        ),
+      )
+      .limit(1);
+
+    if (!existing) {
+      throw new AuthError("Failed to create notebook", 500);
+    }
+
+    revalidatePath("/dashboard");
+    return existing;
+  }
 
   const [notebook] = await db
     .insert(notebooks)
@@ -65,7 +111,6 @@ export async function updateNotebookTitle(id: string, title: string) {
     .update(notebooks)
     .set({
       title: parsedTitle,
-      updatedAt: new Date(),
     })
     .where(
       and(
@@ -92,7 +137,6 @@ export async function deleteNotebook(id: string) {
     .update(notebooks)
     .set({
       status: "deleted",
-      updatedAt: new Date(),
     })
     .where(
       and(
@@ -118,7 +162,6 @@ export async function deleteAllNotebooks() {
     .update(notebooks)
     .set({
       status: "deleted",
-      updatedAt: new Date(),
     })
     .where(and(eq(notebooks.userId, userId), eq(notebooks.status, "active")))
     .returning({ id: notebooks.id });

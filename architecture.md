@@ -23,9 +23,11 @@ answers with proper citations. Built as part of GenAI cohort assignment under a
 - DB model for notebook
 
 ### Chapter 3 — Indexing Phase
-- Support for 4 source types: PDF, Plain Text, YouTube Video, Website URL
+- Support for 3 source types: PDF, Plain Text, YouTube Video
+- Show Website in the source picker as disabled with “Coming soon”
 - Background ingestion pipeline via pg-boss
-- Status indicators: pending → indexing → indexed → failed
+- Status indicators: pending → indexing → retrying → indexed → failed
+- Optimistic TanStack create UX for notebooks and sources
 - PDFs stored in MinIO object storage
 - Text content stored directly in database
 - Chunks + embeddings stored in Qdrant
@@ -86,24 +88,31 @@ Two environment files:
 ### Notebook Table
 ```ts
 id, userId, title, 
-status: enum('active', 'deleting'),
+status: enum('active', 'deleted'),
+idempotencyKey: varchar,
 createdAt, updatedAt
 ```
 
 ### Source Table
 ```ts
-id, notebookId, type: enum('pdf', 'text', 'youtube', 'website'),
+id, notebookId, type: enum('pdf', 'text', 'youtube'),
 title, metadata: jsonb, 
-indexingStatus: enum('pending', 'indexing', 'indexed', 'failed'),
+indexingStatus: enum('pending', 'indexing', 'retrying', 'indexed', 'failed'),
 status: enum('active', 'deleting'),
+idempotencyKey: varchar,
 createdAt, updatedAt
+```
+
+### Idempotency constraints
+```ts
+unique(userId, idempotencyKey)       // notebooks
+unique(notebookId, idempotencyKey)   // sources
 ```
 
 ### Metadata shape per source type
 ```json
-PDF     → { "storageKey": "...", "pageCount": 12 }
+PDF     → { "storageKey": "...", "pageCount": 12, "truncated": false, "indexedCharacterCount": 120000, "indexedChunkCount": 340 }
 YouTube → { "videoId": "...", "url": "..." }
-Website → { "url": "..." }
 Text    → { "content": "..." }
 ```
 
@@ -202,6 +211,14 @@ a dedicated dispatcher, idempotency keys, and `FOR UPDATE SKIP LOCKED` multi-wor
 
 Migration path is intentional: start with Pattern A, then switch enqueue call sites to
 outbox publishing when we have time to harden reliability and multi-service boundaries.
+
+### 8. MVP Indexing UX, Idempotency, and Limits
+- TanStack Query optimistic create/rollback for notebooks and sources
+- Source panel shows progress via 3s polling; no blocking indexing modal
+- Chat input disabled until at least one active source is `indexed`
+- Persist scoped idempotency keys for notebooks and sources
+- Cap PDF extraction at 2M characters / 4,000 chunks; batch upserts of 100
+- Run indexing workers with `npm run worker`
 
 ---
 

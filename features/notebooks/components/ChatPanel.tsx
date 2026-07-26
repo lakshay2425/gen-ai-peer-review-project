@@ -5,10 +5,14 @@ import { demoCitations } from "@/features/citations/demoCitations";
 import type { Citation } from "@/features/citations/types";
 
 type ChatPanelProps = {
+  chatEnabled: boolean;
   onCitationClick: (citation: Citation) => void;
 };
 
-export default function ChatPanel({ onCitationClick }: ChatPanelProps) {
+export default function ChatPanel({
+  chatEnabled,
+  onCitationClick,
+}: ChatPanelProps) {
   const [youtube, pdf, text, website] = demoCitations;
 
   return (
@@ -62,6 +66,33 @@ export default function ChatPanel({ onCitationClick }: ChatPanelProps) {
             Demo citations — replace with real AI responses later.
           </p>
         </div>
+      </div>
+
+      <div className="mt-4">
+        <form
+          className="flex gap-2"
+          onSubmit={(event) => {
+            event.preventDefault();
+          }}
+        >
+          <input
+            type="text"
+            disabled={!chatEnabled}
+            placeholder={
+              chatEnabled
+                ? "Ask a question about your sources..."
+                : "Add and index at least one source to start chatting"
+            }
+            className="flex-1 rounded-full border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400"
+          />
+          <button
+            type="submit"
+            disabled={!chatEnabled}
+            className="inline-flex items-center justify-center rounded-full bg-gray-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-gray-700 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Ask
+          </button>
+        </form>
       </div>
     </section>
   );

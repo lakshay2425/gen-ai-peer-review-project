@@ -15,6 +15,13 @@
       "when": 1785007369438,
       "tag": "0001_easy_nightmare",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1785070992416,
+      "tag": "0002_tiresome_hairball",
+      "breakpoints": true
     }
   ]
 }
