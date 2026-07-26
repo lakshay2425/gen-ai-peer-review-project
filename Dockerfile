@@ -49,16 +49,19 @@ FROM base AS worker
 ENV NODE_ENV=production
 
 RUN addgroup --system --gid 1001 nodejs \
-  && adduser --system --uid 1001 worker \
-  && corepack enable pnpm
+  && adduser --system --uid 1001 worker
 
 COPY --from=deps /app/node_modules ./node_modules
-COPY --from=builder --chown=worker:nodejs /app/package.json /app/pnpm-lock.yaml /app/pnpm-workspace.yaml /app/tsconfig.json ./
-COPY --from=builder --chown=worker:nodejs /app/workers ./workers
-COPY --from=builder --chown=worker:nodejs /app/lib ./lib
-COPY --from=builder --chown=worker:nodejs /app/db ./db
-COPY --from=builder --chown=worker:nodejs /app/features ./features
+COPY --from=builder /app/package.json /app/pnpm-lock.yaml /app/pnpm-workspace.yaml /app/tsconfig.json ./
+COPY --from=builder /app/workers ./workers
+COPY --from=builder /app/lib ./lib
+COPY --from=builder /app/db ./db
+COPY --from=builder /app/features ./features
+
+# node_modules is root-owned from deps; pnpm exec also tries to write under /app.
+RUN chown -R worker:nodejs /app
 
 USER worker
 
-CMD ["pnpm", "exec", "tsx", "workers/index.ts"]
+# Call tsx directly — `pnpm exec` runs a deps check that attempts `pnpm install`.
+CMD ["./node_modules/.bin/tsx", "workers/index.ts"]
