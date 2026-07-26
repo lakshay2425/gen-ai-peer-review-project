@@ -19,8 +19,8 @@
 | PDF processing | Buffer or temp file, basic caps | Streaming download, explicit truncation metadata |
 | YouTube chunking | Basic transcript grouping | Single-level grouping, no timestamp drift |
 | Qdrant setup | Create collection on first use | Initialize-or-validate + payload indexes |
-| Race protection | Status checks at job start | Version fencing + singleton keys + idempotency |
-| Retry UX | `pending/indexing/indexed/failed` | Add `retrying` with correct terminal handling |
+| Race protection | Idempotency keys + source status checks | Version fencing + singleton keys |
+| Retry UX | `pending/indexing/retrying/indexed/failed` | Dead-letter/reconciliation handling |
 | Upload flow | Presigned URL + confirm | Presigned POST policy + `statObject` verification |
 
 ---
@@ -669,14 +669,15 @@ Use `architecture.md` and implement only what is needed to demo end-to-end:
 - [ ] PDF init/confirm (POST policy + basic confirm)
 - [ ] pg-boss worker for index/delete jobs
 - [ ] Qdrant upsert/delete with deterministic IDs
-- [ ] Frontend wiring (stop discarding form payloads)
-- [ ] Status polling UI
+- [ ] Transactional Pattern A enqueue + source idempotency key constraint
+- [ ] Frontend wiring (optimistic source row, background polling, chat input gate)
+- [ ] Status polling UI (`pending/indexing/retrying/indexed/failed`)
 - [ ] Website shown disabled: “Coming soon”
+- [ ] PDF extraction cap (2M chars) + chunk cap (4,000) + batched upserts
 
 Defer to post-assessment (this document):
 - [ ] Version fencing across batches
-- [ ] Idempotency key with DB conflict semantics
-- [ ] Truncation metadata + advanced PDF streaming caps
+- [ ] Advanced truncation metadata + PDF streaming caps
 - [ ] Transactional outbox dispatcher
 - [ ] Dead-letter terminal failure reconciliation
 - [ ] Full MinIO webhook reconciliation jobs

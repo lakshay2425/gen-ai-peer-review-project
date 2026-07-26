@@ -23,9 +23,10 @@ answers with proper citations. Built as part of GenAI cohort assignment under a
 - DB model for notebook
 
 ### Chapter 3 — Indexing Phase
-- Support for 4 source types: PDF, Plain Text, YouTube Video, Website URL
+- Support for 3 source types: PDF, Plain Text, YouTube Video
+- Show Website in the source picker as disabled with “Coming soon”
 - Background ingestion pipeline via pg-boss
-- Status indicators: pending → indexing → indexed → failed
+- Status indicators: pending → indexing → retrying → indexed → failed
 - PDFs stored in MinIO object storage
 - Text content stored directly in database
 - Chunks + embeddings stored in Qdrant
@@ -92,18 +93,18 @@ createdAt, updatedAt
 
 ### Source Table
 ```ts
-id, notebookId, type: enum('pdf', 'text', 'youtube', 'website'),
+id, notebookId, type: enum('pdf', 'text', 'youtube'),
 title, metadata: jsonb, 
-indexingStatus: enum('pending', 'indexing', 'indexed', 'failed'),
+indexingStatus: enum('pending', 'indexing', 'retrying', 'indexed', 'failed'),
 status: enum('active', 'deleting'),
+idempotencyKey: varchar,
 createdAt, updatedAt
 ```
 
 ### Metadata shape per source type
 ```json
-PDF     → { "storageKey": "...", "pageCount": 12 }
+PDF     → { "storageKey": "...", "pageCount": 12, "truncated": false, "indexedCharacterCount": 120000, "indexedChunkCount": 340 }
 YouTube → { "videoId": "...", "url": "..." }
-Website → { "url": "..." }
 Text    → { "content": "..." }
 ```
 
@@ -202,6 +203,45 @@ a dedicated dispatcher, idempotency keys, and `FOR UPDATE SKIP LOCKED` multi-wor
 
 Migration path is intentional: start with Pattern A, then switch enqueue call sites to
 outbox publishing when we have time to harden reliability and multi-service boundaries.
+
+### 8. MVP Indexing UX, Idempotency, and Limits
+
+#### Source panel UX
+Submitting a PDF, text, or YouTube form immediately adds a source row to the source
+panel in its returned `pending` state. The UI polls its status every three seconds and
+updates that row in place:
+
+```text
+pending  -> spinner
+indexing -> yellow progress indicator
+retrying -> orange “Retrying” indicator
+indexed  -> green success indicator
+failed   -> red indicator + retry action
+```
+
+Keep the dialog closed after successful source creation/upload initiation; indexing state
+belongs in the source panel rather than a blocking modal. Disable the chat input until at
+least one active source reaches `indexed`.
+
+#### Idempotent source creation
+Clients generate one idempotency key per submission and reuse it only when retrying that
+same submission. Store `idempotencyKey` on `sources` with a unique
+`(notebookId, idempotencyKey)` constraint. Insert the source with
+`onConflictDoNothing()`, then fetch the existing owned source on conflict. Do not use a
+read-then-insert check because concurrent requests can race.
+
+#### Transactional source creation and enqueue
+For text and YouTube, insert the source and enqueue its index job in the same Pattern A
+transaction. For PDF, create the pending source during upload initialization; after
+server-side `statObject` confirmation succeeds, transactionally update its state and
+enqueue the index job. A failed write or queue insert rolls back both operations.
+
+#### Indexing caps
+To keep the assessment implementation bounded, index no more than 2,000,000 extracted
+characters and 4,000 chunks per PDF source. Chunk only the capped page set, discard
+empty/very short chunks, and embed/upsert in batches of 100 with Qdrant `wait: true`.
+Persist whether a source was truncated plus its indexed character and chunk counts in PDF
+metadata; do not present truncated content as fully indexed.
 
 ---
 
