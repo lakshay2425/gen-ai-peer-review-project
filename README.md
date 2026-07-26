@@ -42,6 +42,7 @@ AI-powered research companion. Upload sources (PDFs, text, YouTube, websites), o
 ### Notebook workspace
 - Two-column layout by default: **Sources** | **Chat**
 - Sources UI: type picker (Text, YouTube, Website, PDF) — add shows a toast for now (upload API next)
+- Chat input: enabled when chat is available; submitting a message shows a toast — **"It will be implemented soon"** (no AI call yet)
 - Citation panel: click a citation chip → third column opens with type-specific viewer
   - YouTube embed at timestamp
   - PDF iframe at `#page=N` (presigned URL API stubbed/commented)
@@ -261,7 +262,7 @@ Demo chips in the chat panel open the third column. PDF URL fetching is stubbed/
 ## Coming next (not wired yet)
 
 - Source upload / persistence (PDF → MinIO, etc.)
-- Real AI chat + citation extraction from model responses
+- Real AI chat (chat submit currently only shows *"It will be implemented soon"*) + citation extraction from model responses
 - Live PDF presigned URL API for citations
 - Qdrant / embeddings pipeline
 
