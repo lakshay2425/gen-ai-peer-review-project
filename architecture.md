@@ -169,6 +169,40 @@ generateText for streamText with minimal restructuring.
 Each notebook maintains its own isolated knowledge base. Isolation is enforced at 
 query time by filtering Qdrant results by notebookId — no separate collection per notebook.
 
+### 7. Atomic DB Writes + Job Enqueue (Pattern A now, Pattern B later)
+Source create / confirm / reindex / delete paths must keep Postgres row changes and
+pg-boss job enqueue atomic — either both commit or both roll back.
+
+**V1 decision: Pattern A — single Postgres transaction with pg-boss `db` adapter**
+
+```ts
+import { fromDrizzle } from 'pg-boss'
+import { sql } from 'drizzle-orm'
+
+await db.transaction(async (tx) => {
+  // 1. business write (insert/update source)
+  await tx.insert(sources).values(...)
+
+  // 2. enqueue job on the same connection/transaction
+  await boss.send('index-pdf', { sourceId }, { db: fromDrizzle(tx, sql) })
+})
+```
+
+Why Pattern A for now:
+- Official pg-boss support via `fromDrizzle(tx, sql)` (works with our `postgres-js` driver)
+- Immediate availability of the job after commit (no dispatcher lag)
+- No extra outbox table or poller process required for V1
+- Safe when workers remain idempotent and re-check source ownership/status
+
+**Future migration: Pattern B — transactional outbox**
+
+Write source row + outbox event in one transaction; a cron/interval dispatcher later
+reads undelivered outbox rows and calls `boss.send`. Delay is acceptable, but requires
+a dedicated dispatcher, idempotency keys, and `FOR UPDATE SKIP LOCKED` multi-worker safety.
+
+Migration path is intentional: start with Pattern A, then switch enqueue call sites to
+outbox publishing when we have time to harden reliability and multi-service boundaries.
+
 ---
 
 ## Reusable Skill Files Used
