@@ -2,7 +2,7 @@ services:
   app:
     build:
       context: ..
-      dockerfile: Dockerfile
+      dockerfile: ./Dockerfile
       target: runner
       args:
         NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
@@ -33,7 +33,7 @@ services:
   worker:
     build:
       context: ..
-      dockerfile: Dockerfile
+      dockerfile: ./Dockerfile
       target: worker
     container_name: geminilm_worker
     restart: unless-stopped
