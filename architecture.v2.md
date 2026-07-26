@@ -22,6 +22,7 @@
 | Race protection | Idempotency keys + source status checks | Version fencing + singleton keys |
 | Retry UX | `pending/indexing/retrying/indexed/failed` | Dead-letter/reconciliation handling |
 | Upload flow | Presigned URL + confirm | Presigned POST policy + `statObject` verification |
+| Create UX | TanStack optimistic create + rollback | Offline replay, conflict UX, and mutation persistence |
 
 ---
 
@@ -55,6 +56,12 @@ Frontend polling (3s):
 ---
 
 ## Database Schema (Drizzle)
+
+### `notebooks` additions
+```ts
+idempotencyKey: varchar(255) nullable
+unique(userId, idempotencyKey)
+```
 
 ### `sources` table
 ```ts
@@ -119,6 +126,44 @@ Apply to:
 Extend `PROTECTED_API_ROUTES` and `proxy.ts` matcher for all `/api/notebooks/**` routes.
 
 MinIO webhook (if used) must use shared secret auth, not JWT.
+
+---
+
+## Optimistic Mutations (MVP)
+
+Use TanStack Query for both `createNotebook` and source-create mutations.
+
+```ts
+const mutation = useMutation({
+  mutationFn: createSource,
+  onMutate: async (input) => {
+    await queryClient.cancelQueries({ queryKey: sourceListKey })
+    const previous = queryClient.getQueryData(sourceListKey)
+
+    queryClient.setQueryData(sourceListKey, (current) => [
+      ...(current ?? []),
+      makeOptimisticSource(input), // id: `optimistic-${idempotencyKey}`
+    ])
+
+    return { previous }
+  },
+  onError: (_error, _input, context) => {
+    queryClient.setQueryData(sourceListKey, context?.previous)
+  },
+  onSuccess: (source) => {
+    replaceOptimisticSource(source)
+  },
+  onSettled: () => queryClient.invalidateQueries({ queryKey: sourceListKey }),
+})
+```
+
+Rules:
+- Generate one UUID idempotency key at submission start.
+- Reuse it only for retrying that identical request.
+- Roll back the cache snapshot and show an error toast when creation fails.
+- PDF optimistic rows remain while direct storage upload/confirmation runs; remove on
+  failed init/upload or replace with confirmed server state.
+- The server is authoritative; `onSettled` refetch reconciles stale optimistic cache data.
 
 ---
 
@@ -509,6 +554,11 @@ Prevent stale index jobs from recreating chunks after delete/reindex, and preven
 
 ### Layer 1 — Idempotency key (UI/API)
 ```ts
+// notebooks
+idempotencyKey: varchar(255)
+unique(userId, idempotencyKey)
+
+// sources
 idempotencyKey: varchar(255)
 unique(notebookId, idempotencyKey)
 ```
@@ -669,7 +719,7 @@ Use `architecture.md` and implement only what is needed to demo end-to-end:
 - [ ] PDF init/confirm (POST policy + basic confirm)
 - [ ] pg-boss worker for index/delete jobs
 - [ ] Qdrant upsert/delete with deterministic IDs
-- [ ] Transactional Pattern A enqueue + source idempotency key constraint
+- [ ] Transactional Pattern A enqueue + notebook/source idempotency key constraints
 - [ ] Frontend wiring (optimistic source row, background polling, chat input gate)
 - [ ] Status polling UI (`pending/indexing/retrying/indexed/failed`)
 - [ ] Website shown disabled: “Coming soon”

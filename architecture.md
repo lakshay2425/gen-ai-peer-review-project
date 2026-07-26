@@ -88,6 +88,7 @@ Two environment files:
 ```ts
 id, userId, title, 
 status: enum('active', 'deleting'),
+idempotencyKey: varchar,
 createdAt, updatedAt
 ```
 
@@ -99,6 +100,12 @@ indexingStatus: enum('pending', 'indexing', 'retrying', 'indexed', 'failed'),
 status: enum('active', 'deleting'),
 idempotencyKey: varchar,
 createdAt, updatedAt
+```
+
+### Idempotency constraints
+```ts
+unique(userId, idempotencyKey)       // notebooks
+unique(notebookId, idempotencyKey)   // sources
 ```
 
 ### Metadata shape per source type
@@ -206,10 +213,26 @@ outbox publishing when we have time to harden reliability and multi-service boun
 
 ### 8. MVP Indexing UX, Idempotency, and Limits
 
-#### Source panel UX
-Submitting a PDF, text, or YouTube form immediately adds a source row to the source
-panel in its returned `pending` state. The UI polls its status every three seconds and
-updates that row in place:
+#### Optimistic notebook and source UX
+Use TanStack Query optimistic mutations for notebook and source creation so UI feedback is
+instant, while the server remains the source of truth.
+
+For `createNotebook` and every source-create mutation:
+1. Generate a UUID idempotency key once per user submission.
+2. In `onMutate`, cancel relevant list queries, snapshot their cached data, and insert a
+   temporary client row (e.g. `id: optimistic-${key}`).
+3. Send the same idempotency key with the request.
+4. In `onSuccess`, replace the temporary row with the canonical server row and start
+   source-status polling when applicable.
+5. In `onError`, restore the snapshot and show an actionable error toast.
+6. In `onSettled`, invalidate the affected list query to reconcile with the server.
+
+Do not generate a new idempotency key for an automatic network retry of the same
+submission. A deliberate second submission creates a new key.
+
+Submitting a PDF, text, or YouTube form immediately adds an optimistic source row to the
+source panel with `pending` status. The UI polls its canonical source status every three
+seconds and updates that row in place:
 
 ```text
 pending  -> spinner
@@ -221,14 +244,16 @@ failed   -> red indicator + retry action
 
 Keep the dialog closed after successful source creation/upload initiation; indexing state
 belongs in the source panel rather than a blocking modal. Disable the chat input until at
-least one active source reaches `indexed`.
+least one active source reaches `indexed`. For PDF, retain the optimistic row while the
+direct upload runs; remove it on upload/init failure or replace it with server-confirmed
+`failed` state when that is available.
 
-#### Idempotent source creation
+#### Idempotent notebook and source creation
 Clients generate one idempotency key per submission and reuse it only when retrying that
-same submission. Store `idempotencyKey` on `sources` with a unique
-`(notebookId, idempotencyKey)` constraint. Insert the source with
-`onConflictDoNothing()`, then fetch the existing owned source on conflict. Do not use a
-read-then-insert check because concurrent requests can race.
+same submission. Store `idempotencyKey` on both tables, with unique
+`(userId, idempotencyKey)` for notebooks and `(notebookId, idempotencyKey)` for sources.
+Insert with `onConflictDoNothing()`, then fetch the existing owned row on conflict. Do not
+use a read-then-insert check because concurrent requests can race.
 
 #### Transactional source creation and enqueue
 For text and YouTube, insert the source and enqueue its index job in the same Pattern A
