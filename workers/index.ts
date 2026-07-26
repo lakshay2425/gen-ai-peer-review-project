@@ -1,6 +1,4 @@
 import dotenv from "dotenv";
-
-// Load env before other app imports that read process.env at startup.
 dotenv.config({ path: ".env.development" });
 
 async function main() {

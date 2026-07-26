@@ -26,6 +26,7 @@ ENV NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL
 RUN --mount=type=cache,id=nextjs-cache,target=/app/.next/cache \
     corepack enable pnpm && pnpm run build
 
+# ── Next.js app (standalone) ─────────────────────────────────────────────────
 FROM base AS runner
 ENV NODE_ENV=production
 ENV PORT=3000
@@ -42,3 +43,22 @@ USER nextjs
 EXPOSE 3000
 
 CMD ["node", "server.js"]
+
+# ── pg-boss worker (separate process / container) ────────────────────────────
+FROM base AS worker
+ENV NODE_ENV=production
+
+RUN addgroup --system --gid 1001 nodejs \
+  && adduser --system --uid 1001 worker \
+  && corepack enable pnpm
+
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=builder --chown=worker:nodejs /app/package.json /app/pnpm-lock.yaml /app/pnpm-workspace.yaml /app/tsconfig.json ./
+COPY --from=builder --chown=worker:nodejs /app/workers ./workers
+COPY --from=builder --chown=worker:nodejs /app/lib ./lib
+COPY --from=builder --chown=worker:nodejs /app/db ./db
+COPY --from=builder --chown=worker:nodejs /app/features ./features
+
+USER worker
+
+CMD ["pnpm", "exec", "tsx", "workers/index.ts"]
