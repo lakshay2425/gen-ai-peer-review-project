@@ -63,6 +63,9 @@ export async function indexYoutubeJob(
   if (!job) return;
 
   const { sourceId } = job.data;
+  console.log(
+    `[index-youtube] start sourceId=${sourceId} jobId=${job.id} attempt=${job.retryCount + 1}/${job.retryLimit + 1}`,
+  );
 
   const [source] = await db
     .select()
@@ -71,13 +74,20 @@ export async function indexYoutubeJob(
     .limit(1);
 
   if (!source || source.type !== "youtube") {
+    console.warn(
+      `[index-youtube] skip sourceId=${sourceId} reason=${
+        !source ? "not_found_or_inactive" : `wrong_type:${source.type}`
+      }`,
+    );
     return;
   }
 
   await markIndexingStatus(sourceId, "indexing");
+  console.log(`[index-youtube] status=indexing sourceId=${sourceId}`);
 
   try {
     const metadata = source.metadata as YoutubeSourceMetadata;
+    console.log(`[index-youtube] fetching transcript videoId=${metadata.videoId}`);
     const transcript = (await fetchTranscript(
       metadata.videoId,
     )) as TranscriptSegment[];
@@ -85,6 +95,7 @@ export async function indexYoutubeJob(
     if (!transcript.length) {
       throw new Error("No transcript available for this YouTube video");
     }
+    console.log(`[index-youtube] transcriptSegments=${transcript.length}`);
 
     const grouped = groupTranscriptSegments(transcript);
     const docs = grouped.map(
@@ -125,11 +136,14 @@ export async function indexYoutubeJob(
     }
 
     await markIndexingStatus(sourceId, "indexed");
+    console.log(`[index-youtube] success sourceId=${sourceId} status=indexed`);
   } catch (error) {
-    await markIndexingStatus(
-      sourceId,
-      isRetryableJob(job) ? "retrying" : "failed",
+    const nextStatus = isRetryableJob(job) ? "retrying" : "failed";
+    console.error(
+      `[index-youtube] error sourceId=${sourceId} nextStatus=${nextStatus}`,
+      error,
     );
+    await markIndexingStatus(sourceId, nextStatus);
     throw error;
   }
 }

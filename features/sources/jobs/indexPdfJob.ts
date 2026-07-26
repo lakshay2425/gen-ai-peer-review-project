@@ -61,6 +61,10 @@ export async function indexPdfJob(jobs: JobWithMetadata<IndexPdfJobData>[]) {
   if (!job) return;
 
   const { sourceId } = job.data;
+  console.log(
+    `[index-pdf] start sourceId=${sourceId} jobId=${job.id} attempt=${job.retryCount + 1}/${job.retryLimit + 1}`,
+  );
+
   const [source] = await db
     .select()
     .from(sources)
@@ -68,13 +72,20 @@ export async function indexPdfJob(jobs: JobWithMetadata<IndexPdfJobData>[]) {
     .limit(1);
 
   if (!source || source.type !== "pdf") {
+    console.warn(
+      `[index-pdf] skip sourceId=${sourceId} reason=${
+        !source ? "not_found_or_inactive" : `wrong_type:${source.type}`
+      }`,
+    );
     return;
   }
 
   await markIndexingStatus(sourceId, "indexing");
+  console.log(`[index-pdf] status=indexing sourceId=${sourceId}`);
 
   try {
     const metadata = source.metadata as PdfSourceMetadata;
+    console.log(`[index-pdf] downloading storageKey=${metadata.storageKey}`);
     const objectStream = await getMinioClient().getObject(
       getMinioBucket(),
       metadata.storageKey,
@@ -148,11 +159,14 @@ export async function indexPdfJob(jobs: JobWithMetadata<IndexPdfJobData>[]) {
         },
       })
       .where(and(eq(sources.id, sourceId), eq(sources.status, "active")));
+    console.log(`[index-pdf] success sourceId=${sourceId} status=indexed`);
   } catch (error) {
-    await markIndexingStatus(
-      sourceId,
-      isRetryableJob(job) ? "retrying" : "failed",
+    const nextStatus = isRetryableJob(job) ? "retrying" : "failed";
+    console.error(
+      `[index-pdf] error sourceId=${sourceId} nextStatus=${nextStatus}`,
+      error,
     );
+    await markIndexingStatus(sourceId, nextStatus);
     throw error;
   }
 }

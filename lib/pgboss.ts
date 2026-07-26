@@ -28,15 +28,23 @@ async function startBoss() {
   }
 
   const instance = new PgBoss({ connectionString });
+
+  instance.on("error", (error) => {
+    console.error("[pg-boss] error", error);
+  });
+
   await instance.start();
+  console.log("[pg-boss] started");
 
   for (const name of Object.values(QUEUE_NAMES)) {
     await instance.createQueue(name, {
       retryLimit: 3,
-      retryDelay: 30,
+      // Short delay so bad keys / transient errors show up quickly in the worker logs.
+      retryDelay: 5,
       retryBackoff: true,
       expireInSeconds: 900,
     });
+    console.log(`[pg-boss] queue ready: ${name}`);
   }
 
   boss = instance;

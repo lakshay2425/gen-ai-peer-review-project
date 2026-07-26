@@ -1,5 +1,6 @@
 "use client";
 
+import toast from "react-hot-toast";
 import CitationTrigger from "@/features/citations/components/CitationTrigger";
 import { demoCitations } from "@/features/citations/demoCitations";
 import type { Citation } from "@/features/citations/types";
@@ -73,10 +74,14 @@ export default function ChatPanel({
           className="flex gap-2"
           onSubmit={(event) => {
             event.preventDefault();
+            if (!chatEnabled) return;
+            toast.success("It will be implemented soon");
+            event.currentTarget.reset();
           }}
         >
           <input
             type="text"
+            name="message"
             disabled={!chatEnabled}
             placeholder={
               chatEnabled

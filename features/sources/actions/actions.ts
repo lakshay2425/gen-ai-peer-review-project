@@ -7,7 +7,10 @@ import { sources, type PdfSourceMetadata, type Source } from "@/db/models/source
 import { AuthError, getCurrentUserId } from "@/lib/auth";
 import { getMinioBucket, getMinioClient } from "@/lib/minio";
 import { QUEUE_NAMES } from "@/lib/pgboss";
-import { sendInTransaction } from "@/features/sources/lib/jobs";
+import {
+  cancelJobsForSource,
+  sendInTransaction,
+} from "@/features/sources/lib/jobs";
 import {
   getOwnedActiveNotebook,
   getOwnedActiveSource,
@@ -388,6 +391,16 @@ export async function deleteSource(notebookId: string, sourceId: string) {
       throw new AuthError("Source not found", 404);
     }
 
+    const indexQueue =
+      updated.type === "pdf"
+        ? QUEUE_NAMES.indexPdf
+        : updated.type === "youtube"
+          ? QUEUE_NAMES.indexYoutube
+          : QUEUE_NAMES.indexText;
+
+    // Stop any delayed retries so delete can finish cleanly.
+    await cancelJobsForSource(indexQueue, updated.id);
+
     await sendInTransaction(
       tx,
       QUEUE_NAMES.deleteSource,
@@ -433,11 +446,15 @@ export async function reindexSource(notebookId: string, sourceId: string) {
           ? QUEUE_NAMES.indexYoutube
           : QUEUE_NAMES.indexText;
 
+    // Cancel stuck retry/created jobs from previous bad API key attempts, then
+    // enqueue a fresh job immediately (unique singleton key avoids dedupe).
+    await cancelJobsForSource(queueName, updated.id);
+
     await sendInTransaction(
       tx,
       queueName,
       { sourceId: updated.id },
-      { singletonKey: updated.id },
+      { singletonKey: `${updated.id}:reindex:${Date.now()}` },
     );
 
     return toPublicSource(updated);
