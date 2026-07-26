@@ -4,10 +4,14 @@ import { useState } from "react";
 import AddSourceDialog from "./AddSourceDialog";
 
 type AddSourceButtonProps = {
+  notebookId: string;
   label: string;
 };
 
-export default function AddSourceButton({ label }: AddSourceButtonProps) {
+export default function AddSourceButton({
+  notebookId,
+  label,
+}: AddSourceButtonProps) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -19,7 +23,11 @@ export default function AddSourceButton({ label }: AddSourceButtonProps) {
       >
         {label}
       </button>
-      <AddSourceDialog open={open} onClose={() => setOpen(false)} />
+      <AddSourceDialog
+        notebookId={notebookId}
+        open={open}
+        onClose={() => setOpen(false)}
+      />
     </>
   );
 }

@@ -1,16 +1,34 @@
 export type SourceType = "text" | "youtube" | "website" | "pdf";
 
-export type LocalSource = {
+export type IndexingStatus =
+  | "pending"
+  | "indexing"
+  | "retrying"
+  | "indexed"
+  | "failed";
+
+export type PublicSource = {
   id: string;
-  type: SourceType;
-  label: string;
+  notebookId: string;
+  type: Exclude<SourceType, "website">;
+  title: string;
+  indexingStatus: IndexingStatus;
+  status: "active" | "deleting";
+  createdAt: Date | string;
+  updatedAt: Date | string;
+  metadata?: {
+    videoId?: string;
+    url?: string;
+    pageCount?: number;
+    truncated?: boolean;
+  };
 };
 
 export type SourceFormPayload =
   | { type: "text"; title: string; content: string }
   | { type: "youtube"; url: string }
   | { type: "website"; url: string }
-  | { type: "pdf"; fileName: string };
+  | { type: "pdf"; fileName: string; file?: File; fileSize?: number };
 
 export const SOURCE_TYPE_LABELS: Record<SourceType, string> = {
   text: "Text",
@@ -30,4 +48,8 @@ export function getSourceLabel(payload: SourceFormPayload): string {
     case "pdf":
       return payload.fileName;
   }
+}
+
+export function isTerminalIndexingStatus(status: IndexingStatus) {
+  return status === "indexed" || status === "failed";
 }

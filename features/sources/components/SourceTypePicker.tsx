@@ -1,3 +1,5 @@
+"use client";
+
 import type { ReactNode } from "react";
 import type { SourceType } from "@/features/sources/types";
 
@@ -11,6 +13,7 @@ const sourceOptions: {
   description: string;
   color: string;
   bg: string;
+  comingSoon?: boolean;
   icon: ReactNode;
 }[] = [
   {
@@ -65,6 +68,7 @@ const sourceOptions: {
     description: "Add a blog post, doc, or web page",
     color: "text-emerald-500",
     bg: "bg-emerald-50",
+    comingSoon: true,
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -114,13 +118,27 @@ export default function SourceTypePicker({ onSelect }: SourceTypePickerProps) {
         <button
           key={option.type}
           type="button"
-          onClick={() => onSelect(option.type)}
-          className="rounded-xl border border-gray-100 bg-white p-4 text-left hover:border-gray-200 hover:shadow-sm transition-all"
+          disabled={option.comingSoon}
+          onClick={() => {
+            if (!option.comingSoon) onSelect(option.type);
+          }}
+          className={`rounded-xl border border-gray-100 bg-white p-4 text-left transition-all ${
+            option.comingSoon
+              ? "cursor-not-allowed opacity-60"
+              : "hover:border-gray-200 hover:shadow-sm"
+          }`}
         >
-          <div
-            className={`inline-flex rounded-lg ${option.bg} ${option.color} p-2.5 mb-3`}
-          >
-            {option.icon}
+          <div className="flex items-start justify-between gap-2 mb-3">
+            <div
+              className={`inline-flex rounded-lg ${option.bg} ${option.color} p-2.5`}
+            >
+              {option.icon}
+            </div>
+            {option.comingSoon ? (
+              <span className="text-[11px] font-medium uppercase tracking-wide text-gray-400">
+                Coming soon
+              </span>
+            ) : null}
           </div>
           <h3 className="text-sm font-semibold text-gray-900 mb-1">
             {option.label}
