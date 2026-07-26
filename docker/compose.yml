@@ -9,10 +9,9 @@ services:
         NEXT_PUBLIC_BUSINESS_NAME: ${NEXT_PUBLIC_BUSINESS_NAME}
         NEXT_PUBLIC_AUTH_URL: ${NEXT_PUBLIC_AUTH_URL}
         NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${NEXT_PUBLIC_GOOGLE_CLIENT_ID}
-    container_name: geminilm_app
     restart: unless-stopped
-    ports:
-      - "3000:3000"
+    expose:
+      - "3000"
     environment:
       NODE_ENV: production
       PORT: 3000
@@ -35,7 +34,6 @@ services:
       context: .
       dockerfile: Dockerfile
       target: worker
-    container_name: geminilm_worker
     restart: unless-stopped
     environment:
       NODE_ENV: production
