@@ -1,4 +1,4 @@
-import { jwtVerify, importSPKI, errors } from "jose";
+import { createRemoteJWKSet, jwtVerify, errors } from "jose";
 import { cookies } from "next/headers";
 import type { NextRequest } from "next/server";
 
@@ -38,32 +38,14 @@ export function isProtectedApiRoute(pathname: string): boolean {
   );
 }
 
-let cachedPublicKey: Awaited<ReturnType<typeof importSPKI>> | null = null;
-
-async function getPublicKey() {
-  if (cachedPublicKey) return cachedPublicKey;
-
-  const base64PublicKey = process.env.JWT_PUBLIC_KEY;
-  if (!base64PublicKey) {
-    throw new Error("JWT_PUBLIC_KEY environment variable is not set.");
-  }
-
-  try {
-    const pemKey = Buffer.from(base64PublicKey, "base64").toString("utf-8");
-    cachedPublicKey = await importSPKI(pemKey, "RS256");
-    return cachedPublicKey;
-  } catch (error) {
-    console.error("Failed to import JWT_PUBLIC_KEY:", error);
-    throw new Error(
-      "Failed to import JWT_PUBLIC_KEY. Ensure it is a valid base64-encoded PEM string.",
-    );
-  }
-}
+// Cached for the lifetime of the server process (not re-fetched every request).
+const JWKS = createRemoteJWKSet(
+  new URL("https://authentication.lakshaymahajan.com/.well-known/jwks.json"),
+);
 
 export async function verifyAuthToken(token: string): Promise<AuthUser> {
   try {
-    const publicKey = await getPublicKey();
-    const { payload } = await jwtVerify(token, publicKey, {
+    const { payload } = await jwtVerify(token, JWKS, {
       algorithms: ["RS256"],
     });
 

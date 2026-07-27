@@ -114,7 +114,7 @@ Feature-based layout: shared shell under `app/`, domain logic under `features/`.
 - **Docker** (for local PostgreSQL)
 - **Google Cloud OAuth client** (Web application)
 - **External auth service** that handles Google callback + sets the session cookie
-- Base64-encoded **RS256 public key** from the auth service (`JWT_PUBLIC_KEY`)
+- Auth service must expose JWKS at `/.well-known/jwks.json` (used by `lib/auth.ts`)
 
 ---
 
@@ -140,7 +140,6 @@ Fill in at least:
 | `NEXT_PUBLIC_AUTH_URL` | External auth service base URL |
 | `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | Google OAuth client ID |
 | `NEXT_PUBLIC_BUSINESS_NAME` | App name sent to auth service (default: `GeminiLM`) |
-| `JWT_PUBLIC_KEY` | Base64-encoded RS256 PEM public key |
 | `DATABASE_URL` | PostgreSQL URL (e.g. `postgresql://postgres:postgres@localhost:5432/geminilm`) |
 
 Also copy/use `.env.development` for Drizzle (`drizzle.config.ts` loads it).
@@ -183,7 +182,7 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Authentication
 
-Google OAuth uses the **authorization code** flow. Session cookies are issued by the **external auth service**; this app verifies JWTs with `JWT_PUBLIC_KEY`.
+Google OAuth uses the **authorization code** flow. Session cookies are issued by the **external auth service**; this app verifies JWTs with the auth service JWKS (`createRemoteJWKSet` in `lib/auth.ts`).
 
 ```
 User clicks Sign in

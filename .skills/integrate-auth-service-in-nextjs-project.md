@@ -15,10 +15,10 @@ Authentication is split between **two systems**:
    - Runs Google OAuth: you send it the Google `auth-code`, it exchanges the code, and returns the user's profile (`userInfo`).
    - Issues an **RS256-signed JWT** and sets it as an **HTTP-only cookie named `token`** on the browser.
    - Exposes `GET /auth/google/callback` and `POST /users/logout`.
-   - Holds the JWT **private** key. Your Next.js app only ever gets the **public** key.
+   - Holds the JWT **private** key and publishes the matching **public** keys at a JWKS endpoint (e.g. `/.well-known/jwks.json`).
 
 2. **Your Next.js app** (what this skill sets up). It:
-   - Never signs or issues tokens. It only **verifies** the `token` cookie using the RS256 **public key** (`jose` + `importSPKI`).
+   - Never signs or issues tokens. It only **verifies** the `token` cookie using the auth service's remote JWKS (`jose` + `createRemoteJWKSet` + `jwtVerify`, algorithm `RS256`).
    - Runs a proxy/middleware that guards protected routes, verifies the JWT, and forwards the decoded user to API route handlers via an `x-auth-user` header.
    - Owns its **own `users` table**. After the auth service confirms a Google login, the app upserts a matching row keyed by the JWT `sub` (the auth service's user id).
 
@@ -54,7 +54,7 @@ pnpm add jose axios @react-oauth/google @tanstack/react-query react-hot-toast dr
 pnpm add -D drizzle-kit dotenv
 ```
 
-- `jose` — RS256 JWT verification
+- `jose` — RS256 JWT verification via remote JWKS (`createRemoteJWKSet`)
 - `@react-oauth/google` — Google OAuth popup + `auth-code` flow
 - `axios` — HTTP client with cookie credentials
 - `drizzle-orm` + `postgres` + `drizzle-kit` — users table & migrations
@@ -70,11 +70,6 @@ Create `.env`:
 # Postgres connection string for the users table
 DATABASE_URL=postgresql://user:password@localhost:5432/your_db
 
-# Base64-encoded PEM of the auth service's RS256 PUBLIC key.
-# Get this from the auth service. It must be the SPKI/PEM public key,
-# base64-encoded (encode the whole "-----BEGIN PUBLIC KEY----- ..." block).
-JWT_PUBLIC_KEY=LS0tLS1CRUdJTiBQVUJMSUMgS0VZ...
-
 # Google OAuth client id (same client id registered with the auth service)
 NEXT_PUBLIC_GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
 
@@ -88,15 +83,17 @@ NEXT_PUBLIC_AUTH_URL=https://auth.yourdomain.com
 NEXT_PUBLIC_BUSINESS_NAME=YourAppName
 ```
 
-> To produce `JWT_PUBLIC_KEY`: take the auth service's public key PEM file and run
-> `base64 -w0 public_key.pem` (Linux) or `base64 -i public_key.pem` (macOS), then paste the output.
+JWT verification does **not** use an env-stored public key. The app fetches keys from the auth service JWKS URL (hardcoded or configured in `src/lib/auth.ts`), e.g.:
+
+`https://authentication.lakshaymahajan.com/.well-known/jwks.json`
+
+Point that URL at your auth service's JWKS endpoint. No `JWT_PUBLIC_KEY` is required.
 
 Environment variable summary:
 
 | Variable | Where used | Purpose |
 |---|---|---|
 | `DATABASE_URL` | server | Postgres connection for the users table |
-| `JWT_PUBLIC_KEY` | server (middleware) | Verify RS256 JWTs from the `token` cookie |
 | `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | client | Google OAuth provider |
 | `NEXT_PUBLIC_APP_URL` | client | axios baseURL |
 | `NEXT_PUBLIC_AUTH_URL` | client | External auth service base URL |
@@ -172,10 +169,10 @@ npx drizzle-kit migrate
 
 ## Step 4 — JWT verification library
 
-`src/lib/auth.ts` — the reusable verification core. Copy verbatim:
+`src/lib/auth.ts` — the reusable verification core. Copy verbatim, then point the JWKS URL at your auth service:
 
 ```ts
-import { jwtVerify, importSPKI, errors } from "jose";
+import { createRemoteJWKSet, jwtVerify, errors } from "jose";
 import type { NextRequest } from "next/server";
 
 export const AUTH_COOKIE_NAME = "token";
@@ -212,24 +209,10 @@ export function isProtectedPageRoute(pathname: string): boolean {
   return pathname === "/dashboard" || pathname.startsWith("/dashboard/");
 }
 
-let cachedPublicKey: Awaited<ReturnType<typeof importSPKI>> | null = null;
-
-async function getPublicKey() {
-  if (cachedPublicKey) return cachedPublicKey;
-
-  const base64PublicKey = process.env.JWT_PUBLIC_KEY;
-  if (!base64PublicKey) {
-    throw new Error("JWT_PUBLIC_KEY environment variable is not set.");
-  }
-  try {
-    const pemKey = Buffer.from(base64PublicKey, "base64").toString("utf-8");
-    cachedPublicKey = await importSPKI(pemKey, "RS256");
-    return cachedPublicKey;
-  } catch (error) {
-    console.error("Failed to import JWT_PUBLIC_KEY:", error);
-    throw new Error("Failed to import JWT_PUBLIC_KEY. Ensure it is a valid base64-encoded PEM string.");
-  }
-}
+// Module-level JWKS: cached for the lifetime of the server process (not re-fetched every request)
+const JWKS = createRemoteJWKSet(
+  new URL("https://authentication.lakshaymahajan.com/.well-known/jwks.json"),
+);
 
 export function isProtectedApiRoute(pathname: string): boolean {
   return PROTECTED_API_ROUTES.some(
@@ -237,10 +220,9 @@ export function isProtectedApiRoute(pathname: string): boolean {
   );
 }
 
-export async function verifyAuthToken(token: string): Promise<AuthUser> {
+export async function verifyToken(token: string): Promise<AuthUser> {
   try {
-    const publicKey = await getPublicKey();
-    const { payload } = await jwtVerify(token, publicKey, { algorithms: ["RS256"] });
+    const { payload } = await jwtVerify(token, JWKS, { algorithms: ["RS256"] });
 
     if (!payload || typeof payload === "string" || !("userInfo" in payload)) {
       throw new AuthError("Invalid token, please login again", 401);
@@ -277,8 +259,10 @@ export function getAuthenticatedRequest(request: NextRequest): AuthenticatedRequ
 ```
 
 Notes:
-- The public key is cached across invocations (`cachedPublicKey`) so it's imported once.
-- `verifyAuthToken` requires the payload to contain `userInfo` — this matches the shape the auth service signs. Adjust if your auth service uses a different claim.
+- Create `JWKS` once at module scope with `createRemoteJWKSet` so `jose` caches keys for the process lifetime.
+- Replace the JWKS URL with your auth service's `/.well-known/jwks.json` endpoint.
+- Enforce `algorithms: ["RS256"]` so only the expected signing algorithm is accepted.
+- `verifyToken` requires the payload to contain `userInfo` — this matches the shape the auth service signs. Adjust if your auth service uses a different claim.
 - The decoded user id comes from the JWT `sub` claim.
 
 ---
@@ -296,7 +280,7 @@ import {
   AuthError,
   isProtectedApiRoute,
   isProtectedPageRoute,
-  verifyAuthToken,
+  verifyToken,
 } from "@/lib/auth";
 
 export async function proxy(request: NextRequest) {
@@ -316,7 +300,7 @@ export async function proxy(request: NextRequest) {
   }
 
   try {
-    const user = await verifyAuthToken(token);
+    const user = await verifyToken(token);
 
     if (isPage) return NextResponse.next();
 
@@ -761,9 +745,9 @@ export async function GET(request: NextRequest) {
 ## Integration checklist
 
 - [ ] Installed dependencies (Step 1)
-- [ ] All 6 env vars set; `JWT_PUBLIC_KEY` is the base64 of the auth service's **public** PEM (Step 2)
+- [ ] Env vars set (`DATABASE_URL`, Google client id, app URL, auth URL, business name); JWKS URL in `src/lib/auth.ts` points at the auth service (Step 2)
 - [ ] `users` table created and migrated; PK is `varchar` holding the JWT `sub` (Step 3)
-- [ ] `src/lib/auth.ts` copied; `PROTECTED_API_ROUTES`, `isProtectedPageRoute`, and `verifyAuthToken`'s expected claim adjusted for your app (Step 4)
+- [ ] `src/lib/auth.ts` copied; `PROTECTED_API_ROUTES`, `isProtectedPageRoute`, JWKS URL, and `verifyToken`'s expected claim adjusted for your app (Step 4)
 - [ ] `src/proxy.ts` (or `middleware.ts`) added; `config.matcher` matches your protected routes (Step 5)
 - [ ] `/api/user` and `/api/user/[email]` routes added (Step 6)
 - [ ] axios instance uses `withCredentials: true` (Step 7)
@@ -775,7 +759,7 @@ export async function GET(request: NextRequest) {
 
 - **Cookie not sent:** forgetting `withCredentials: true` on axios — protected requests will 401.
 - **CORS on the auth service:** the auth service must allow your app's origin with credentials, or the `Set-Cookie` will be dropped by the browser.
-- **Wrong key:** `JWT_PUBLIC_KEY` must be the **public** key, base64-encoded PEM, matching the algorithm `RS256`. A private key or raw (non-base64) PEM will fail `importSPKI`.
+- **Wrong JWKS URL / unreachable JWKS:** `createRemoteJWKSet` must point at the auth service's public `/.well-known/jwks.json`. A wrong host, HTTP vs HTTPS mismatch, or network block will make every verify fail.
 - **Matcher drift:** if a route is in `PROTECTED_API_ROUTES` but not in `config.matcher` (or vice-versa), it silently won't be guarded. Keep them in sync.
-- **Claim shape:** `verifyAuthToken` rejects tokens without a `userInfo` claim. If your auth service signs a different payload, update that guard and the `userId`/`role` extraction.
+- **Claim shape:** `verifyToken` rejects tokens without a `userInfo` claim. If your auth service signs a different payload, update that guard and the `userId`/`role` extraction.
 - **Next.js version:** middleware is `proxy.ts` in Next 16, `middleware.ts` earlier. Use the right filename/export for your version.

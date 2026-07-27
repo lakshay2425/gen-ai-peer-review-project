@@ -36,7 +36,6 @@ jobs:
       #     NEXT_PUBLIC_BUSINESS_NAME: ${{ secrets.NEXT_PUBLIC_BUSINESS_NAME }}
       #     NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL }}
       #     DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      #     JWT_PUBLIC_KEY: ${{ secrets.JWT_PUBLIC_KEY }}
 
       # - name: Trigger Coolify Deployment
       #   if: github.ref == 'refs/heads/master' && github.event_name == 'push'

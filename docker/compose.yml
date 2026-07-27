@@ -33,7 +33,6 @@ services:
       PORT: 3000
       HOSTNAME: 0.0.0.0
       DATABASE_URL: ${DATABASE_URL}
-      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY}
       MINIO_ENDPOINT: ${MINIO_ENDPOINT}
       QDRANT_URL: http://qdrant:6333
       MINIO_PORT: ${MINIO_PORT}
