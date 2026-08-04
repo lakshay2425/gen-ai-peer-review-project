@@ -1,6 +1,7 @@
 import Navbar from "@/app/components/Navbar";
 import HeroActions from "@/app/components/HeroActions";
 import CtaBanner from "@/app/components/CtaBanner";
+import { Badge } from "@/components/ui/badge";
 
 const sources = [
   {
@@ -22,8 +23,8 @@ const sources = [
     ),
     label: "PDF Documents",
     description: "Research papers, e-books, reports, and any PDF file",
-    color: "text-red-500",
-    bg: "bg-red-50",
+    color: "text-red-600 dark:text-red-400",
+    bg: "bg-red-500/10",
   },
   {
     icon: (
@@ -44,8 +45,8 @@ const sources = [
     ),
     label: "Text Files",
     description: "Plain text, markdown notes, drafts, and articles",
-    color: "text-blue-500",
-    bg: "bg-blue-50",
+    color: "text-blue-600 dark:text-blue-400",
+    bg: "bg-blue-500/10",
   },
   {
     icon: (
@@ -66,8 +67,8 @@ const sources = [
     ),
     label: "YouTube Videos",
     description: "Lectures, tutorials, interviews, and conference talks",
-    color: "text-rose-500",
-    bg: "bg-rose-50",
+    color: "text-rose-600 dark:text-rose-400",
+    bg: "bg-rose-500/10",
   },
   {
     icon: (
@@ -88,8 +89,8 @@ const sources = [
     ),
     label: "Website Links",
     description: "Documentation, blog posts, news articles, and web pages",
-    color: "text-emerald-500",
-    bg: "bg-emerald-50",
+    color: "text-emerald-600 dark:text-emerald-400",
+    bg: "bg-emerald-500/10",
   },
 ];
 
@@ -140,20 +141,20 @@ const features = [
 
 export default function HomePage() {
   return (
-    <div className="flex flex-col min-h-screen bg-white font-[family-name:var(--font-geist-sans)]">
+    <div className="flex flex-col min-h-screen bg-background">
       <Navbar />
 
       {/* Hero */}
       <section className="pt-32 pb-20 px-6">
         <div className="max-w-3xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-700 mb-8">
+          <Badge variant="secondary" className="mb-8">
             AI-powered research, grounded in your sources
-          </div>
-          <h1 className="text-5xl sm:text-6xl font-semibold tracking-tight text-gray-900 leading-[1.1] mb-6">
+          </Badge>
+          <h1 className="font-heading text-5xl sm:text-6xl font-semibold tracking-tight text-foreground leading-[1.1] mb-6">
             Turn any source into{" "}
-            <span className="text-indigo-600">deep insight</span>
+            <span className="text-primary">deep insight</span>
           </h1>
-          <p className="text-lg sm:text-xl text-gray-500 leading-relaxed mb-10 max-w-2xl mx-auto">
+          <p className="text-lg sm:text-xl text-muted-foreground leading-relaxed mb-10 max-w-2xl mx-auto">
             Upload your research materials and let AI do the heavy lifting.
             Chat, summarize, and explore your content — all in one place.
           </p>
@@ -162,13 +163,13 @@ export default function HomePage() {
       </section>
 
       {/* Sources */}
-      <section id="sources" className="py-20 px-6 bg-gray-50">
+      <section id="sources" className="py-20 px-6 bg-muted/50">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-14">
-            <h2 className="text-3xl font-semibold text-gray-900 mb-3">
+            <h2 className="font-heading text-3xl font-semibold text-foreground mb-3">
               Works with all your sources
             </h2>
-            <p className="text-gray-500 max-w-xl mx-auto">
+            <p className="text-muted-foreground max-w-xl mx-auto">
               Bring content from anywhere. GeminiLM understands and unifies everything into a single, searchable notebook.
             </p>
           </div>
@@ -176,17 +177,17 @@ export default function HomePage() {
             {sources.map((source) => (
               <div
                 key={source.label}
-                className="rounded-2xl bg-white border border-gray-100 p-6 shadow-sm hover:shadow-md transition-shadow"
+                className="rounded-2xl bg-card border border-border p-6 shadow-sm hover:shadow-md transition-shadow"
               >
                 <div
                   className={`inline-flex rounded-xl ${source.bg} ${source.color} p-3 mb-4`}
                 >
                   {source.icon}
                 </div>
-                <h3 className="font-semibold text-gray-900 mb-1.5">
+                <h3 className="font-medium text-foreground mb-1.5">
                   {source.label}
                 </h3>
-                <p className="text-sm text-gray-500 leading-relaxed">
+                <p className="text-sm text-muted-foreground leading-relaxed">
                   {source.description}
                 </p>
               </div>
@@ -199,10 +200,10 @@ export default function HomePage() {
       <section className="py-20 px-6">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-14">
-            <h2 className="text-3xl font-semibold text-gray-900 mb-3">
+            <h2 className="font-heading text-3xl font-semibold text-foreground mb-3">
               Everything you need to understand your content
             </h2>
-            <p className="text-gray-500 max-w-xl mx-auto">
+            <p className="text-muted-foreground max-w-xl mx-auto">
               From quick summaries to deep conversations — GeminiLM adapts to how you work.
             </p>
           </div>
@@ -210,16 +211,16 @@ export default function HomePage() {
             {features.map((feature) => (
               <div
                 key={feature.title}
-                className="rounded-2xl border border-gray-100 bg-gray-50 p-8 flex flex-col gap-4"
+                className="rounded-2xl border border-border bg-muted/30 p-8 flex flex-col gap-4"
               >
-                <div className="inline-flex w-fit rounded-xl bg-indigo-50 text-indigo-600 p-3">
+                <div className="inline-flex w-fit rounded-xl bg-primary/10 text-primary p-3">
                   {feature.icon}
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">
+                  <h3 className="font-medium text-foreground mb-2">
                     {feature.title}
                   </h3>
-                  <p className="text-sm text-gray-500 leading-relaxed">
+                  <p className="text-sm text-muted-foreground leading-relaxed">
                     {feature.description}
                   </p>
                 </div>
@@ -232,10 +233,10 @@ export default function HomePage() {
       <CtaBanner />
 
       {/* Footer */}
-      <footer className="py-8 px-6 border-t border-gray-100">
-        <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-gray-400">
+      <footer className="py-8 px-6 border-t border-border">
+        <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
           <span>
-            Gemini<span className="text-indigo-600">LM</span>
+            Gemini<span className="text-primary">LM</span>
           </span>
           <span>© {new Date().getFullYear()} GeminiLM. All rights reserved.</span>
         </div>

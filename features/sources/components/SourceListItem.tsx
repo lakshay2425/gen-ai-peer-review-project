@@ -1,6 +1,7 @@
 "use client";
 
 import toast from "react-hot-toast";
+import { Badge } from "@/components/ui/badge";
 import {
   useDeleteSource,
   useReindexSource,
@@ -21,45 +22,45 @@ function StatusIndicator({
 }) {
   if (status === "pending") {
     return (
-      <span className="inline-flex items-center gap-1.5 text-xs text-gray-500">
-        <span className="h-3 w-3 animate-spin rounded-full border-2 border-gray-300 border-t-gray-700" />
+      <Badge variant="secondary" className="gap-1.5">
+        <span className="h-2 w-2 animate-spin rounded-full border border-muted-foreground border-t-transparent" />
         Pending
-      </span>
+      </Badge>
     );
   }
 
   if (status === "indexing") {
     return (
-      <span className="inline-flex items-center gap-1.5 text-xs text-amber-600">
+      <Badge variant="secondary" className="gap-1.5 text-amber-600 dark:text-amber-400">
         <span className="h-2 w-2 rounded-full bg-amber-500" />
         Indexing
-      </span>
+      </Badge>
     );
   }
 
   if (status === "retrying") {
     return (
-      <span className="inline-flex items-center gap-1.5 text-xs text-orange-600">
+      <Badge variant="secondary" className="gap-1.5 text-orange-600 dark:text-orange-400">
         <span className="h-2 w-2 rounded-full bg-orange-500" />
         Retrying
-      </span>
+      </Badge>
     );
   }
 
   if (status === "indexed") {
     return (
-      <span className="inline-flex items-center gap-1.5 text-xs text-emerald-600">
+      <Badge variant="secondary" className="gap-1.5 text-emerald-600 dark:text-emerald-400">
         <span className="h-2 w-2 rounded-full bg-emerald-500" />
         Indexed
-      </span>
+      </Badge>
     );
   }
 
   return (
-    <span className="inline-flex items-center gap-1.5 text-xs text-red-600">
-      <span className="h-2 w-2 rounded-full bg-red-500" />
+    <Badge variant="destructive" className="gap-1.5">
+      <span className="h-2 w-2 rounded-full bg-destructive" />
       Failed
-    </span>
+    </Badge>
   );
 }
 
@@ -78,13 +79,13 @@ export default function SourceListItem({
   const reindexMutation = useReindexSource(notebookId);
 
   return (
-    <li className="rounded-xl border border-gray-100 bg-white px-3 py-3">
+    <li className="rounded-xl border border-border bg-card px-3 py-3">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="truncate text-sm font-medium text-gray-900">
+          <p className="truncate text-sm font-medium text-foreground">
             {source.title}
           </p>
-          <p className="mt-0.5 text-xs text-gray-500">
+          <p className="mt-0.5 text-xs text-muted-foreground">
             {SOURCE_TYPE_LABELS[source.type]}
           </p>
           <div className="mt-2">
@@ -101,7 +102,7 @@ export default function SourceListItem({
                   onError: () => toast.error("Failed to reindex source"),
                 })
               }
-              className="text-xs font-medium text-indigo-600 hover:text-indigo-500 disabled:opacity-60"
+              className="text-xs font-medium text-primary hover:text-primary/80 disabled:opacity-60"
             >
               Retry
             </button>
@@ -114,7 +115,7 @@ export default function SourceListItem({
                 onError: () => toast.error("Failed to delete source"),
               })
             }
-            className="text-xs font-medium text-gray-400 hover:text-red-500 disabled:opacity-60"
+            className="text-xs font-medium text-muted-foreground hover:text-destructive disabled:opacity-60"
           >
             Delete
           </button>

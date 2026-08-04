@@ -39,27 +39,27 @@ export default function PdfCitationViewer({ citation }: PdfCitationViewerProps) 
 
   return (
     <div className="flex flex-col gap-3 h-full min-h-0">
-      <p className="text-xs text-gray-500">Page {pageNumber}</p>
+      <p className="text-xs text-muted-foreground">Page {pageNumber}</p>
 
       {hasError ? (
-        <div className="flex-1 flex flex-col items-center justify-center rounded-xl border border-dashed border-gray-200 bg-white px-4 py-8 text-center">
-          <p className="text-sm text-gray-500 mb-3">
+        <div className="flex-1 flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-card px-4 py-8 text-center">
+          <p className="text-sm text-muted-foreground mb-3">
             Unable to load this PDF in the panel.
           </p>
           <a
             href={presignedUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-sm font-medium text-indigo-600 hover:text-indigo-700"
+            className="text-sm font-medium text-primary hover:text-primary/80"
           >
             Open PDF in a new tab
           </a>
         </div>
       ) : (
-        <div className="relative flex-1 min-h-[320px] overflow-hidden rounded-xl border border-gray-100 bg-white">
+        <div className="relative flex-1 min-h-[320px] overflow-hidden rounded-xl border border-border bg-card">
           {isLoading && (
-            <div className="absolute inset-0 flex items-center justify-center bg-white z-10">
-              <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-indigo-600" />
+            <div className="absolute inset-0 flex items-center justify-center bg-card z-10">
+              <div className="h-8 w-8 animate-spin rounded-full border-4 border-muted border-t-primary" />
             </div>
           )}
           <iframe

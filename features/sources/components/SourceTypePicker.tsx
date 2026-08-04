@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { Badge } from "@/components/ui/badge";
 import type { SourceType } from "@/features/sources/types";
 
 type SourceTypePickerProps = {
@@ -20,8 +21,8 @@ const sourceOptions: {
     type: "text",
     label: "Text",
     description: "Paste notes, articles, or any plain text",
-    color: "text-blue-500",
-    bg: "bg-blue-50",
+    color: "text-blue-600 dark:text-blue-400",
+    bg: "bg-blue-500/10",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -43,8 +44,8 @@ const sourceOptions: {
     type: "youtube",
     label: "YouTube Video Link",
     description: "Add a lecture, tutorial, or talk",
-    color: "text-rose-500",
-    bg: "bg-rose-50",
+    color: "text-rose-600 dark:text-rose-400",
+    bg: "bg-rose-500/10",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -66,8 +67,8 @@ const sourceOptions: {
     type: "website",
     label: "Website Link",
     description: "Add a blog post, doc, or web page",
-    color: "text-emerald-500",
-    bg: "bg-emerald-50",
+    color: "text-emerald-600 dark:text-emerald-400",
+    bg: "bg-emerald-500/10",
     comingSoon: true,
     icon: (
       <svg
@@ -90,8 +91,8 @@ const sourceOptions: {
     type: "pdf",
     label: "PDF",
     description: "Upload a research paper or document",
-    color: "text-red-500",
-    bg: "bg-red-50",
+    color: "text-red-600 dark:text-red-400",
+    bg: "bg-red-500/10",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -122,10 +123,10 @@ export default function SourceTypePicker({ onSelect }: SourceTypePickerProps) {
           onClick={() => {
             if (!option.comingSoon) onSelect(option.type);
           }}
-          className={`rounded-xl border border-gray-100 bg-white p-4 text-left transition-all ${
+          className={`rounded-xl border border-border bg-card p-4 text-left transition-all ${
             option.comingSoon
               ? "cursor-not-allowed opacity-60"
-              : "hover:border-gray-200 hover:shadow-sm"
+              : "hover:border-primary/30 hover:shadow-sm"
           }`}
         >
           <div className="flex items-start justify-between gap-2 mb-3">
@@ -135,15 +136,15 @@ export default function SourceTypePicker({ onSelect }: SourceTypePickerProps) {
               {option.icon}
             </div>
             {option.comingSoon ? (
-              <span className="text-[11px] font-medium uppercase tracking-wide text-gray-400">
+              <Badge variant="secondary" className="text-[10px] uppercase tracking-wide">
                 Coming soon
-              </span>
+              </Badge>
             ) : null}
           </div>
-          <h3 className="text-sm font-semibold text-gray-900 mb-1">
+          <h3 className="text-sm font-semibold text-foreground mb-1">
             {option.label}
           </h3>
-          <p className="text-xs text-gray-500">{option.description}</p>
+          <p className="text-xs text-muted-foreground">{option.description}</p>
         </button>
       ))}
     </div>

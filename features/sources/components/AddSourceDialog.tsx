@@ -3,6 +3,7 @@
 import { useState } from "react";
 import toast from "react-hot-toast";
 import Dialog from "@/app/components/Dialog";
+import { Button } from "@/components/ui/button";
 import {
   useCreatePdfSource,
   useCreateTextSource,
@@ -110,16 +111,12 @@ export default function AddSourceDialog({
         />
       ) : (
         <div className="space-y-4">
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-muted-foreground">
             This source type is coming soon.
           </p>
-          <button
-            type="button"
-            onClick={() => setSelectedType(null)}
-            className="inline-flex items-center justify-center rounded-full border border-gray-200 px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-          >
+          <Button variant="outline" onClick={() => setSelectedType(null)}>
             Back
-          </button>
+          </Button>
         </div>
       )}
     </Dialog>

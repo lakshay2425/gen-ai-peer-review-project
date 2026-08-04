@@ -33,23 +33,23 @@ export default function Dialog({ open, onClose, title, children }: DialogProps) 
       <button
         type="button"
         aria-label="Close dialog"
-        className="absolute inset-0 bg-gray-900/40"
+        className="absolute inset-0 bg-foreground/40"
         onClick={onClose}
       />
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="dialog-title"
-        className="relative w-full max-w-lg rounded-2xl bg-white border border-gray-100 shadow-xl"
+        className="relative w-full max-w-lg rounded-2xl bg-card border border-border shadow-xl"
       >
-        <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
-          <h2 id="dialog-title" className="text-lg font-semibold text-gray-900">
+        <div className="flex items-center justify-between border-b border-border px-6 py-4">
+          <h2 id="dialog-title" className="font-heading text-lg font-semibold text-foreground">
             {title}
           </h2>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
+            className="rounded-lg p-1 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
             aria-label="Close"
           >
             <svg

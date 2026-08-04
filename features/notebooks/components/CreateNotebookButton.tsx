@@ -39,7 +39,7 @@ export default function CreateNotebookButton({
       disabled={isPending}
       className={
         className ??
-        "inline-flex items-center justify-center rounded-full bg-gray-900 px-6 py-3 text-sm font-medium text-white hover:bg-gray-700 transition-colors disabled:opacity-60"
+        "inline-flex items-center justify-center rounded-full bg-primary px-6 py-3 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-60"
       }
     >
       {isPending ? "Creating..." : label}

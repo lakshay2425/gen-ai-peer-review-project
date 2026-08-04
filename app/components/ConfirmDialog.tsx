@@ -1,6 +1,7 @@
 "use client";
 
 import Dialog from "./Dialog";
+import { Button } from "@/components/ui/button";
 
 type ConfirmDialogProps = {
   open: boolean;
@@ -23,24 +24,14 @@ export default function ConfirmDialog({
 }: ConfirmDialogProps) {
   return (
     <Dialog open={open} onClose={onClose} title={title}>
-      <p className="text-sm text-gray-500 leading-relaxed mb-6">{description}</p>
+      <p className="text-sm text-muted-foreground leading-relaxed mb-6">{description}</p>
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
-        <button
-          type="button"
-          onClick={onClose}
-          disabled={isLoading}
-          className="inline-flex items-center justify-center rounded-full border border-gray-200 px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-60"
-        >
+        <Button variant="outline" onClick={onClose} disabled={isLoading}>
           Cancel
-        </button>
-        <button
-          type="button"
-          onClick={onConfirm}
-          disabled={isLoading}
-          className="inline-flex items-center justify-center rounded-full bg-red-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-red-700 transition-colors disabled:opacity-60"
-        >
+        </Button>
+        <Button variant="destructive" onClick={onConfirm} disabled={isLoading}>
           {isLoading ? "Deleting..." : confirmLabel}
-        </button>
+        </Button>
       </div>
     </Dialog>
   );

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import AddSourceDialog from "./AddSourceDialog";
 
 type AddSourceButtonProps = {
@@ -16,13 +17,13 @@ export default function AddSourceButton({
 
   return (
     <>
-      <button
+      <Button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex w-full items-center justify-center rounded-full bg-gray-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-gray-700 transition-colors"
+        className="w-full rounded-full"
       >
         {label}
-      </button>
+      </Button>
       <AddSourceDialog
         notebookId={notebookId}
         open={open}

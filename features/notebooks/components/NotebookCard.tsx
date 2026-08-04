@@ -35,7 +35,7 @@ export default function NotebookCard({ notebook }: NotebookCardProps) {
     <>
       <Link
         href={`/dashboard/${notebook.id}`}
-        className="group block rounded-2xl border border-gray-100 bg-white p-6 shadow-sm hover:shadow-md hover:border-gray-200 transition-all"
+        className="group block rounded-2xl border border-border bg-card p-6 shadow-sm hover:shadow-md hover:border-primary/20 transition-all"
       >
         <div className="flex items-start justify-between gap-3">
           <div
@@ -54,7 +54,7 @@ export default function NotebookCard({ notebook }: NotebookCardProps) {
               event.stopPropagation();
               setShowDeleteDialog(true);
             }}
-            className="shrink-0 rounded-lg p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-600 transition-colors"
+            className="shrink-0 rounded-lg p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
             aria-label="Delete notebook"
           >
             <svg
@@ -71,7 +71,7 @@ export default function NotebookCard({ notebook }: NotebookCardProps) {
             </svg>
           </button>
         </div>
-        <p className="mt-4 text-xs text-gray-400">
+        <p className="mt-4 text-xs text-muted-foreground">
           Updated {new Date(notebook.updatedAt).toLocaleDateString()}
         </p>
       </Link>

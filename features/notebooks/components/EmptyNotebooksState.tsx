@@ -2,8 +2,8 @@ import CreateNotebookButton from "./CreateNotebookButton";
 
 export default function EmptyNotebooksState() {
   return (
-    <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-gray-50 px-6 py-16 text-center">
-      <div className="inline-flex rounded-2xl bg-indigo-50 text-indigo-600 p-4 mb-6">
+    <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-muted/30 px-6 py-16 text-center">
+      <div className="inline-flex rounded-2xl bg-primary/10 text-primary p-4 mb-6">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
@@ -20,10 +20,10 @@ export default function EmptyNotebooksState() {
           />
         </svg>
       </div>
-      <h2 className="text-xl font-semibold text-gray-900 mb-2">
+      <h2 className="font-heading text-xl font-semibold text-foreground mb-2">
         No notebooks yet
       </h2>
-      <p className="text-sm text-gray-500 max-w-sm mb-8">
+      <p className="text-sm text-muted-foreground max-w-sm mb-8">
         Create your first notebook to start uploading sources and exploring your
         content with AI.
       </p>

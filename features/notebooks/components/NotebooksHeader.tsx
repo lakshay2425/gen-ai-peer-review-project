@@ -5,8 +5,8 @@ export default function NotebooksHeader() {
   return (
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
       <div>
-        <h1 className="text-3xl font-semibold text-gray-900">Your notebooks</h1>
-        <p className="text-sm text-gray-500 mt-1">
+        <h1 className="font-heading text-3xl font-semibold text-foreground">Your notebooks</h1>
+        <p className="text-sm text-muted-foreground mt-1">
           Upload sources and explore your content with AI.
         </p>
       </div>

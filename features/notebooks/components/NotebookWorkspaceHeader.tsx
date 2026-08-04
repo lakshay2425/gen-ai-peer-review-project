@@ -14,7 +14,7 @@ export default function NotebookWorkspaceHeader({
     <div className="mb-6">
       <Link
         href="/dashboard"
-        className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-900 transition-colors mb-4"
+        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -33,8 +33,8 @@ export default function NotebookWorkspaceHeader({
       <EditableNotebookTitle
         notebookId={notebookId}
         title={title}
-        className="text-2xl font-semibold text-gray-900"
-        inputClassName="w-full rounded-lg border border-gray-200 px-3 py-2 text-2xl font-semibold text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        className="font-heading text-2xl font-semibold text-foreground"
+        inputClassName="w-full font-heading text-2xl font-semibold"
       />
     </div>
   );

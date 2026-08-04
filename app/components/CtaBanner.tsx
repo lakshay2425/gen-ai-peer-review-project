@@ -1,15 +1,16 @@
 "use client";
 
+import Link from "next/link";
 import { useAuth } from "@/app/context/AuthContext";
 import GetStartedButton from "@/features/auth/components/GetStartedButton";
 import CreateNotebookButton from "@/features/notebooks/components/CreateNotebookButton";
 import { useNotebooks } from "@/features/notebooks/hooks";
 
 const primaryButtonClassName =
-  "inline-flex items-center justify-center gap-3 rounded-full bg-white px-6 py-3 text-base font-medium text-gray-900 hover:bg-gray-100 transition-colors disabled:opacity-60 w-full sm:w-auto";
+  "inline-flex items-center justify-center gap-3 rounded-full bg-primary-foreground px-6 py-3 text-base font-medium text-primary hover:bg-primary-foreground/90 transition-colors disabled:opacity-60 w-full sm:w-auto";
 
 const secondaryButtonClassName =
-  "inline-flex items-center gap-2 rounded-full border border-gray-600 px-6 py-3 text-base font-medium text-gray-300 hover:bg-gray-800 transition-colors w-full sm:w-auto justify-center";
+  "inline-flex items-center gap-2 rounded-full border border-primary-foreground/30 px-6 py-3 text-base font-medium text-primary-foreground/80 hover:bg-primary-foreground/10 transition-colors w-full sm:w-auto justify-center";
 
 function SeeWhatItDoesButton() {
   return (
@@ -64,12 +65,12 @@ export default function CtaBanner() {
       : "Create your first notebook";
 
   return (
-    <section className="py-20 px-6 bg-gray-900">
+    <section className="py-20 px-6 bg-primary">
       <div className="max-w-2xl mx-auto text-center">
-        <h2 className="text-3xl font-semibold text-white mb-4">
+        <h2 className="font-heading text-3xl font-semibold text-primary-foreground mb-4">
           Ready to unlock your content?
         </h2>
-        <p className="text-gray-400 mb-8">
+        <p className="text-primary-foreground/70 mb-8">
           {isAuthenticated
             ? "Create a notebook and start adding your sources."
             : "Start for free. No credit card required."}
@@ -81,6 +82,9 @@ export default function CtaBanner() {
               label={createLabel}
               className={primaryButtonClassName}
             />
+            <Link href="/dashboard" className={secondaryButtonClassName}>
+              Manage notebooks
+            </Link>
             <SeeWhatItDoesButton />
           </div>
         ) : (

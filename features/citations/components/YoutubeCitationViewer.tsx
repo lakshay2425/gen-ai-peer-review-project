@@ -12,11 +12,11 @@ export default function YoutubeCitationViewer({
 
   return (
     <div className="flex flex-col gap-3 h-full">
-      <p className="text-xs text-gray-500">
+      <p className="text-xs text-muted-foreground">
         Playing from {Math.floor(startTime / 60)}:
         {String(startTime % 60).padStart(2, "0")}
       </p>
-      <div className="relative w-full aspect-video overflow-hidden rounded-xl border border-gray-100 bg-black">
+      <div className="relative w-full aspect-video overflow-hidden rounded-xl border border-border bg-black">
         <iframe
           src={src}
           title="YouTube citation"

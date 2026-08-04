@@ -1,15 +1,16 @@
 "use client";
 
+import Link from "next/link";
 import { useAuth } from "@/app/context/AuthContext";
 import GetStartedButton from "@/features/auth/components/GetStartedButton";
 import CreateNotebookButton from "@/features/notebooks/components/CreateNotebookButton";
 import { useNotebooks } from "@/features/notebooks/hooks";
 
 const secondaryButtonClassName =
-  "inline-flex items-center gap-2 rounded-full border border-gray-200 px-6 py-3 text-base font-medium text-gray-700 hover:bg-gray-50 transition-colors w-full sm:w-auto justify-center";
+  "inline-flex items-center gap-2 rounded-full border border-border bg-background px-6 py-3 text-base font-medium text-foreground hover:bg-muted transition-colors w-full sm:w-auto justify-center";
 
 const primaryButtonClassName =
-  "inline-flex items-center justify-center gap-3 rounded-full bg-gray-900 px-6 py-3 text-base font-medium text-white hover:bg-gray-700 transition-colors disabled:opacity-60 w-full sm:w-auto";
+  "inline-flex items-center justify-center gap-3 rounded-full bg-primary px-6 py-3 text-base font-medium text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-60 w-full sm:w-auto";
 
 function SeeWhatItDoesButton() {
   return (
@@ -31,6 +32,14 @@ function SeeWhatItDoesButton() {
   );
 }
 
+function ManageNotebooksButton() {
+  return (
+    <Link href="/dashboard" className={secondaryButtonClassName}>
+      Manage notebooks
+    </Link>
+  );
+}
+
 export default function HeroActions() {
   const { isAuthenticated } = useAuth();
   const { data: notebooks } = useNotebooks({ enabled: isAuthenticated });
@@ -47,6 +56,7 @@ export default function HeroActions() {
           label={createLabel}
           className={primaryButtonClassName}
         />
+        <ManageNotebooksButton />
         <SeeWhatItDoesButton />
       </div>
     );

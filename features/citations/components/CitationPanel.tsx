@@ -16,18 +16,18 @@ export default function CitationPanel({
   onClose,
 }: CitationPanelProps) {
   return (
-    <aside className="w-full lg:w-96 shrink-0 rounded-2xl border border-gray-100 bg-gray-50 p-5 flex flex-col min-h-[420px] lg:min-h-0">
+    <aside className="w-full lg:w-96 shrink-0 rounded-2xl border border-border bg-muted/30 p-5 flex flex-col min-h-[420px] lg:min-h-0">
       <div className="flex items-start justify-between gap-3 mb-4">
         <div>
-          <p className="text-xs font-medium text-indigo-600 mb-1">Citation</p>
-          <h2 className="text-lg font-semibold text-gray-900">
+          <p className="text-xs font-medium text-primary mb-1">Citation</p>
+          <h2 className="font-heading text-lg font-semibold text-foreground">
             {CITATION_TYPE_LABELS[citation.citationType]}
           </h2>
         </div>
         <button
           type="button"
           onClick={onClose}
-          className="shrink-0 rounded-lg p-1.5 text-gray-400 hover:bg-white hover:text-gray-700 transition-colors"
+          className="shrink-0 rounded-lg p-1.5 text-muted-foreground hover:bg-card hover:text-foreground transition-colors"
           aria-label="Close citation panel"
         >
           <svg

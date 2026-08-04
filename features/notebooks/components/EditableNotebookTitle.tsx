@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import toast from "react-hot-toast";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { useUpdateNotebookTitle } from "@/features/notebooks/hooks";
 
 type EditableNotebookTitleProps = {
@@ -14,8 +16,8 @@ type EditableNotebookTitleProps = {
 export default function EditableNotebookTitle({
   notebookId,
   title,
-  className = "text-base font-semibold text-gray-900",
-  inputClassName = "w-full rounded-lg border border-gray-200 px-3 py-2 text-base font-semibold text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500",
+  className = "text-base font-semibold text-foreground",
+  inputClassName = "w-full text-base font-semibold",
 }: EditableNotebookTitleProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState(title);
@@ -55,7 +57,7 @@ export default function EditableNotebookTitle({
   if (isEditing) {
     return (
       <div className="flex flex-col sm:flex-row gap-2 w-full">
-        <input
+        <Input
           type="text"
           value={draft}
           onChange={(event) => setDraft(event.target.value)}
@@ -68,22 +70,12 @@ export default function EditableNotebookTitle({
           }}
         />
         <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={handleSave}
-            disabled={isPending}
-            className="rounded-full bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700 transition-colors disabled:opacity-60"
-          >
+          <Button size="sm" onClick={handleSave} disabled={isPending}>
             Save
-          </button>
-          <button
-            type="button"
-            onClick={handleCancel}
-            disabled={isPending}
-            className="rounded-full border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-60"
-          >
+          </Button>
+          <Button size="sm" variant="outline" onClick={handleCancel} disabled={isPending}>
             Cancel
-          </button>
+          </Button>
         </div>
       </div>
     );
@@ -98,7 +90,7 @@ export default function EditableNotebookTitle({
           setDraft(title);
           setIsEditing(true);
         }}
-        className="shrink-0 rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
+        className="shrink-0 rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
         aria-label="Edit title"
       >
         <svg

@@ -33,7 +33,7 @@ export default function DeleteAllNotebooksButton() {
         type="button"
         onClick={() => setShowDialog(true)}
         disabled={isPending}
-        className="inline-flex items-center justify-center rounded-full border border-red-200 px-5 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors disabled:opacity-60"
+        className="inline-flex items-center justify-center rounded-full border border-destructive/30 px-5 py-2.5 text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-60"
       >
         Delete all
       </button>
