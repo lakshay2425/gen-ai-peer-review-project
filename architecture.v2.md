@@ -714,6 +714,31 @@ Captured while shipping the assessment MVP:
 
 ---
 
+## Chapter 6 — Deployment
+
+- VPS deployment with Docker Compose (`docker/compose.yml`)
+- Postgres → Neon/Supabase (production)
+- Qdrant → self-hosted Docker container (production, same compose stack as app/worker)
+- MinIO → self-hosted VPS instance (production)
+
+---
+
+## Environments
+
+| Service | Development | Production |
+|---|---|---|
+| Postgres | Docker container | Neon / Supabase |
+| Qdrant | Docker container | Self-hosted Docker container (compose stack) |
+| MinIO | Docker container | Personal VPS instance |
+
+Two environment files:
+- `.env.development` → local Docker services
+- `.env.production` → managed cloud services (Postgres) + self-hosted compose services (Qdrant, MinIO)
+
+In production compose, `QDRANT_URL` is set internally to `http://qdrant:6333` — no Qdrant Cloud dependency.
+
+---
+
 ## Migration Path
 
 1. Ship MVP against `architecture.md`

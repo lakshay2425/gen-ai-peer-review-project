@@ -47,7 +47,7 @@ answers with proper citations. Built as part of GenAI cohort assignment under a
 ### Chapter 6 — Deployment
 - VPS deployment with Docker Compose
 - Postgres → Neon/Supabase (production)
-- Qdrant → Qdrant Cloud (production)
+- Qdrant → self-hosted Docker container (production, same compose stack as app/worker)
 - MinIO → self-hosted VPS instance (production)
 
 ---
@@ -74,12 +74,12 @@ answers with proper citations. Built as part of GenAI cohort assignment under a
 | Service | Development | Production |
 |---|---|---|
 | Postgres | Docker container | Neon / Supabase |
-| Qdrant | Docker container | Qdrant Cloud |
+| Qdrant | Docker container | Self-hosted Docker container (compose stack) |
 | MinIO | Docker container | Personal VPS instance |
 
 Two environment files:
 - `.env.development` → local Docker services
-- `.env.production` → managed cloud services
+- `.env.production` → managed cloud services (Postgres) + self-hosted compose services (Qdrant, MinIO)
 
 ---
 
